@@ -1,1 +1,4 @@
-# JARVIS currently uses only Python standard library.\n
+faster-whisper>=1.1.0
+numpy>=2.0.0
+pyttsx3>=2.98
+sounddevice>=0.5.1
