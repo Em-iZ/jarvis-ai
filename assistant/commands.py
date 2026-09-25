@@ -2,15 +2,28 @@ import datetime
 import subprocess
 import webbrowser
 
+from assistant.app_launcher import open_app
+
 
 def handle_command(command: str) -> str:
     text = command.lower().strip()
 
-    if text in {"pomoč", "help"}:
-        return "Ukazi: odpri chrome, odpri beležnico, odpri kalkulator, odpri youtube, odpri google, ura, izhod"
+    if text in {"pomoč", "help", "kaj znaš"}:
+        return (
+            "Lahko odpiram aplikacije in igre, spletne strani ter povem uro. "
+            "Reci na primer: odpri Discord, zaženi Steam, odpri YouTube ali koliko je ura."
+        )
 
     if text in {"ura", "koliko je ura", "koliko je ura?"}:
         return datetime.datetime.now().strftime("Trenutni čas je %H:%M.")
+
+    if text in {"danes", "kateri dan je danes", "datum"}:
+        return datetime.datetime.now().strftime("Danes je %d.%m.%Y.")
+
+    prefixes = ("odpri mi ", "odpri ", "zaženi mi ", "zaženi ", "launch ")
+    for prefix in prefixes:
+        if text.startswith(prefix):
+            return open_app(text[len(prefix):])
 
     if "youtube" in text:
         webbrowser.open("https://www.youtube.com")
@@ -19,13 +32,6 @@ def handle_command(command: str) -> str:
     if "google" in text:
         webbrowser.open("https://www.google.com")
         return "Odpiram Google."
-
-    if "chrome" in text:
-        try:
-            subprocess.Popen(["cmd", "/c", "start", "", "chrome"])
-            return "Odpiram Chrome."
-        except Exception:
-            return "Chroma nisem mogel odpreti."
 
     if "beležnico" in text or "beležnica" in text or "notepad" in text:
         subprocess.Popen(["notepad.exe"])
