@@ -1,7 +1,7 @@
+import os
 import threading
 
 from assistant.commands import handle_command
-from assistant.voice import VoiceEngine
 from ui import JarvisUI
 
 
@@ -10,6 +10,7 @@ class Jarvis:
         self.ui = None
         self.voice = None
         self.running = True
+        self.voice_lock = threading.Lock()
 
     def process(self, command: str):
         if not command:
@@ -23,52 +24,70 @@ class Jarvis:
             except Exception:
                 pass
 
-    def voice_loop(self):
-        self.ui.set_status("POSLUŠAM ... RECI »JARVIS«")
-        while self.running:
+    def create_voice(self):
+        if self.voice is not None:
+            return True
+        try:
+            from assistant.voice import VoiceEngine
+            self.ui.set_status("NALAGAM SLOVENSKI GOVOR ...")
+            self.voice = VoiceEngine()
+            return True
+        except Exception as exc:
+            self.ui.set_status(f"GLAS NI NA VOLJO: {type(exc).__name__}")
+            self.ui.set_response(
+                "JARVIS deluje, vendar glas trenutno ni na voljo. "
+                "Preveri mikrofon in namestitev."
+            )
+            return False
+
+    def listen_once(self):
+        with self.voice_lock:
+            if not self.create_voice():
+                return
+
             try:
-                heard = self.voice.listen(4)
+                self.ui.set_status("POSLUŠAM ...")
+                heard = self.voice.listen(6)
                 if not heard:
-                    continue
+                    self.ui.set_response("Nisem ničesar slišal.")
+                    return
+
                 self.ui.set_command(f"Slišim: {heard}")
-                low = heard.lower()
+                low = heard.lower().strip()
                 wake_words = ("jarvis", "jervis", "džarvis", "džervis")
-                if any(word in low for word in wake_words):
-                    command = low
-                    for word in wake_words:
-                        command = command.replace(word, "", 1)
-                    command = command.strip(" ,.!?")
-                    self.ui.set_status("POSLUŠAM UKAZ ...")
-                    if not command:
-                        self.voice.speak("Da?")
-                        command = self.voice.listen(6)
-                    if command:
-                        self.process(command)
-                    self.ui.set_status("POSLUŠAM ... RECI »JARVIS«")
+
+                for word in wake_words:
+                    if word in low:
+                        low = low.replace(word, "", 1).strip(" ,.!?")
+                        break
+
+                if not low:
+                    self.voice.speak("Da?")
+                    low = self.voice.listen(6)
+
+                if low:
+                    self.process(low)
             except Exception as exc:
                 self.ui.set_status(f"GLAS: {type(exc).__name__}")
+                self.ui.set_response(
+                    "Glasovni del se ni zagnal. JARVIS ostaja odprt."
+                )
+            finally:
+                self.ui.set_status("JARVIS ONLINE")
 
     def start(self):
-        self.ui = JarvisUI(self.process, self.close)
-
-        def setup():
-            try:
-                self.ui.set_status("NALAGAM SLOVENSKI GOVOR ...")
-                self.voice = VoiceEngine()
-                self.ui.set_status("POSLUŠAM ... RECI »JARVIS«")
-                threading.Thread(target=self.voice_loop, daemon=True).start()
-            except Exception as exc:
-                self.ui.set_status(f"GLAS NI NA VOLJO: {type(exc).__name__}")
-                self.ui.set_response(
-                    "Preveri mikrofon in namestitev iz requirements.txt."
-                )
-
-        threading.Thread(target=setup, daemon=True).start()
+        # Voice is initialized only when needed. This prevents a microphone/
+        # audio-driver problem from closing the whole application at startup.
+        self.ui = JarvisUI(self.process, self.close, self.listen_once)
+        self.ui.set_response(
+            "JARVIS je pripravljen. Pritisni POSLUŠAJ za glasovni test."
+        )
         self.ui.run()
 
     def close(self):
         self.running = False
-        self.ui.root.destroy()
+        if self.ui:
+            self.ui.root.destroy()
 
 
 if __name__ == "__main__":
