@@ -4,7 +4,7 @@ import tkinter as tk
 
 
 class JarvisUI:
-    def __init__(self, on_command, on_close):
+    def __init__(self, on_command, on_close, on_listen):
         self.root = tk.Tk()
         self.root.title("JARVIS")
         self.root.geometry("900x600")
@@ -12,6 +12,7 @@ class JarvisUI:
         self.root.protocol("WM_DELETE_WINDOW", on_close)
 
         self.on_command = on_command
+        self.on_listen = on_listen
         self.status = tk.StringVar(value="JARVIS ONLINE")
         self.last_command = tk.StringVar(value="Čakam ...")
         self.response = tk.StringVar(value="Pozdravljen. Reci »Jarvis«.")
@@ -57,7 +58,7 @@ class JarvisUI:
         ).pack(pady=5)
 
     def listen_once(self):
-        threading.Thread(target=self.on_command, args=("",), daemon=True).start()
+        threading.Thread(target=self.on_listen, daemon=True).start()
 
     def animate(self):
         self.canvas.delete("all")
