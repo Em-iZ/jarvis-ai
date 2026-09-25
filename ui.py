@@ -1,4 +1,5 @@
 import math
+import threading
 import tkinter as tk
 
 
@@ -10,6 +11,7 @@ class JarvisUI:
         self.root.configure(bg="#05070b")
         self.root.protocol("WM_DELETE_WINDOW", on_close)
 
+        self.on_command = on_command
         self.status = tk.StringVar(value="JARVIS ONLINE")
         self.last_command = tk.StringVar(value="Čakam ...")
         self.response = tk.StringVar(value="Pozdravljen. Reci »Jarvis«.")
@@ -47,12 +49,15 @@ class JarvisUI:
 
         tk.Button(
             self.root, text="🎙  POSLUŠAJ",
-            command=on_command,
+            command=self.listen_once,
             font=("Segoe UI", 12, "bold"),
             bg="#0d1820", fg="#66e6ff",
             activebackground="#132b35", activeforeground="#ffffff",
             relief="flat", padx=25, pady=10
         ).pack(pady=5)
+
+    def listen_once(self):
+        threading.Thread(target=self.on_command, args=("",), daemon=True).start()
 
     def animate(self):
         self.canvas.delete("all")
