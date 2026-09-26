@@ -3,6 +3,7 @@ import threading
 
 from assistant.commands import handle_command
 from ui import JarvisUI
+from server import create_server
 
 
 class Jarvis:
@@ -29,7 +30,7 @@ class Jarvis:
             return True
         try:
             from assistant.voice import VoiceEngine
-            self.ui.set_status("NALAGAM SLOVENSKI GOVOR ...")
+            self.ui.set_status("NALAGAM ANGLEŠKI GLAS ...")
             self.voice = VoiceEngine()
             return True
         except Exception as exc:
@@ -76,6 +77,18 @@ class Jarvis:
                 self.ui.set_status("JARVIS ONLINE")
 
     def start(self):
+        # Start the web dashboard on the local network.
+        web_app = create_server(self)
+        threading.Thread(
+            target=lambda: web_app.run(
+                host="0.0.0.0",
+                port=5000,
+                debug=False,
+                use_reloader=False,
+            ),
+            daemon=True,
+        ).start()
+
         # Voice is initialized only when needed. This prevents a microphone/
         # audio-driver problem from closing the whole application at startup.
         self.ui = JarvisUI(self.process, self.close, self.listen_once)
