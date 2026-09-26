@@ -1,9 +1,39 @@
 import datetime
+import os
 import re
 import subprocess
 import webbrowser
 
 from assistant.app_launcher import open_app
+
+
+SPECIAL_FOLDERS = {
+    "namizje": "Desktop",
+    "desktop": "Desktop",
+    "dokumenti": "Documents",
+    "documents": "Documents",
+    "prenosi": "Downloads",
+    "downloads": "Downloads",
+    "slike": "Pictures",
+    "pictures": "Pictures",
+    "glasba": "Music",
+    "music": "Music",
+    "videi": "Videos",
+    "videos": "Videos",
+}
+
+
+def _open_special_folder(name: str) -> str | None:
+    folder = SPECIAL_FOLDERS.get(name)
+    if not folder:
+        return None
+
+    path = os.path.join(os.path.expanduser("~"), folder)
+    try:
+        os.startfile(path)
+        return f"Opening {folder}."
+    except OSError:
+        return f"I couldn't open {folder}."
 
 
 def handle_command(command: str) -> str:
@@ -19,8 +49,8 @@ def handle_command(command: str) -> str:
         "what do you do",
     }:
         return (
-            "Lahko odpiram aplikacije in igre, spletne strani ter povem uro in datum. "
-            "Reci na primer: odpri Discord, zaženi Steam, open YouTube ali what time is it."
+            "Lahko odpiram aplikacije in igre, spletne strani, posebne mape ter povem uro in datum. "
+            "Reci na primer: odpri Discord, odpri Prenose, open YouTube ali what time is it."
         )
 
     if text in {
@@ -98,6 +128,10 @@ def handle_command(command: str) -> str:
     for prefix in prefixes:
         if text.startswith(prefix):
             target = text[len(prefix):].strip()
+
+            if target in SPECIAL_FOLDERS:
+                return _open_special_folder(target) or "I couldn't open that folder."
+
             if target:
                 return open_app(target)
 
