@@ -17,7 +17,6 @@ SPECIAL_FOLDERS = {
     "prenose": "Downloads",
     "downloads": "Downloads",
     "slike": "Pictures",
-    "slike": "Pictures",
     "glasba": "Music",
     "glasbo": "Music",
     "music": "Music",
@@ -53,8 +52,10 @@ def handle_command(command: str) -> str:
         "what do you do",
     }:
         return (
-            "Lahko odpiram aplikacije in igre, spletne strani, posebne mape ter povem uro in datum. "
-            "Reci na primer: odpri Discord, odpri Prenose, open YouTube ali what time is it."
+            "Lahko odpiram aplikacije in igre, spletne strani, posebne mape, "
+            "iščem po Googlu ter povem uro in datum. "
+            "Reci na primer: odpri Discord, odpri Prenose, poišči Minecraft "
+            "ali what time is it."
         )
 
     if text in {
@@ -98,12 +99,29 @@ def handle_command(command: str) -> str:
     }:
         return "JARVIS is online and ready for commands."
 
+    search_prefixes = (
+        "poišči mi ",
+        "poišči ",
+        "najdi mi ",
+        "najdi ",
+        "search for ",
+        "search ",
+        "google ",
+    )
+    for prefix in search_prefixes:
+        if text.startswith(prefix):
+            query = text[len(prefix):].strip()
+            if query:
+                url = "https://www.google.com/search?q=" + webbrowser.quote(query)
+                webbrowser.open(url)
+                return f"Searching Google for {query}."
+
     # Web commands must be handled before the Windows app launcher.
     if "youtube" in text:
         webbrowser.open("https://www.youtube.com")
         return "Opening YouTube."
 
-    if "google" in text:
+    if text == "google":
         webbrowser.open("https://www.google.com")
         return "Opening Google."
 
