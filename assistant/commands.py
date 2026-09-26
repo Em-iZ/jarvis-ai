@@ -27,21 +27,27 @@ def handle_command(command: str) -> str:
         "ura",
         "koliko je ura",
         "koliko je ura zdaj",
+        "koliko je ura trenutno",
+        "time",
         "what time is it",
         "what's the time",
+        "what time is it now",
         "current time",
     }:
-        return datetime.datetime.now().strftime("Trenutni čas je %H:%M.")
+        return datetime.datetime.now().strftime("The current time is %H:%M.")
 
     if text in {
         "danes",
         "kateri dan je danes",
         "datum",
+        "današnji datum",
         "today",
+        "date",
         "what is the date",
         "what's the date",
+        "what is today's date",
     }:
-        return datetime.datetime.now().strftime("Danes je %d.%m.%Y.")
+        return datetime.datetime.now().strftime("Today's date is %d.%m.%Y.")
 
     if text in {
         "kdo si",
@@ -49,23 +55,23 @@ def handle_command(command: str) -> str:
         "who are you",
         "what are you",
     }:
-        return "Sem JARVIS, tvoj lokalni AI pomočnik."
+        return "I am JARVIS, your local AI assistant."
 
     if text in {
         "status",
         "system status",
         "stanje",
     }:
-        return "JARVIS deluje in je pripravljen na ukaze."
+        return "JARVIS is online and ready for commands."
 
     # Web commands must be handled before the Windows app launcher.
     if "youtube" in text:
         webbrowser.open("https://www.youtube.com")
-        return "Odpiram YouTube."
+        return "Opening YouTube."
 
     if "google" in text:
         webbrowser.open("https://www.google.com")
-        return "Odpiram Google."
+        return "Opening Google."
 
     if (
         "beležnico" in text
@@ -73,11 +79,11 @@ def handle_command(command: str) -> str:
         or "notepad" in text
     ):
         subprocess.Popen(["notepad.exe"])
-        return "Odpiram Beležnico."
+        return "Opening Notepad."
 
     if "kalkulator" in text or "calculator" in text:
         subprocess.Popen(["calc.exe"])
-        return "Odpiram Kalkulator."
+        return "Opening Calculator."
 
     prefixes = (
         "odpri mi ",
@@ -95,4 +101,4 @@ def handle_command(command: str) -> str:
             if target:
                 return open_app(target)
 
-    return "Tega ukaza še ne znam. Poskusi 'pomoč'."
+    return "I don't know that command yet. Try 'help'."
