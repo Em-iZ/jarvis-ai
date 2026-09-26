@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import webbrowser
+from urllib.parse import quote
 
 from assistant.app_launcher import open_app
 
@@ -112,7 +113,7 @@ def handle_command(command: str) -> str:
         if text.startswith(prefix):
             query = text[len(prefix):].strip()
             if query:
-                url = "https://www.google.com/search?q=" + webbrowser.quote(query)
+                url = "https://www.google.com/search?q=" + quote(query)
                 webbrowser.open(url)
                 return f"Searching Google for {query}."
 
