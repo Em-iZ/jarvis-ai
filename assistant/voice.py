@@ -15,8 +15,23 @@ class VoiceEngine:
         )
         self.model = Model(model_path)
         self.tts = pyttsx3.init()
+        self._select_english_voice()
         self.tts.setProperty("rate", 175)
         self.tts.setProperty("volume", 1.0)
+
+    def _select_english_voice(self):
+        for voice in self.tts.getProperty("voices"):
+            voice_info = " ".join(
+                str(value)
+                for value in (
+                    getattr(voice, "name", ""),
+                    getattr(voice, "id", ""),
+                    getattr(voice, "languages", ""),
+                )
+            ).lower()
+            if "english" in voice_info or "en-us" in voice_info or "en_gb" in voice_info:
+                self.tts.setProperty("voice", voice.id)
+                return
 
     def speak(self, text: str):
         self.tts.say(text)
