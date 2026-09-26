@@ -1,6 +1,18 @@
 import json
+import re
 import subprocess
 import webbrowser
+
+APP_ALIASES = {
+    "discord": ("discord",),
+    "steam": ("steam",),
+    "spotify": ("spotify",),
+    "minecraft": ("minecraft",),
+    "vs code": ("visual studio code", "vs code", "code"),
+    "vscode": ("visual studio code", "vs code", "code"),
+    "chrome": ("google chrome", "chrome"),
+    "edge": ("microsoft edge", "edge"),
+}
 
 
 def _start_apps():
@@ -24,20 +36,41 @@ def _start_apps():
         return []
 
 
+def _normalize_name(name: str) -> str:
+    name = name.casefold().strip()
+    name = re.sub(r"\s+", " ", name)
+    return name
+
+
 def open_app(name: str) -> str:
-    name = name.strip()
+    name = _normalize_name(name)
     if not name:
         return "Povej mi ime aplikacije."
 
     apps = _start_apps()
-    wanted = name.casefold()
+    wanted = name
+
+    aliases = APP_ALIASES.get(wanted, (wanted,))
 
     exact = next(
-        (app for app in apps if app.get("Name", "").casefold() == wanted),
+        (
+            app
+            for app in apps
+            if _normalize_name(app.get("Name", "")) in aliases
+        ),
         None,
     )
+
     match = exact or next(
-        (app for app in apps if wanted in app.get("Name", "").casefold()),
+        (
+            app
+            for app in apps
+            if any(
+                alias in _normalize_name(app.get("Name", ""))
+                or _normalize_name(app.get("Name", "")) in alias
+                for alias in aliases
+            )
+        ),
         None,
     )
 
@@ -55,7 +88,11 @@ def open_app(name: str) -> str:
 
     # Useful for websites said as commands.
     if "." in name and " " not in name:
-        url = name if name.startswith(("http://", "https://")) else f"https://{name}"
+        url = (
+            name
+            if name.startswith(("http://", "https://"))
+            else f"https://{name}"
+        )
         webbrowser.open(url)
         return f"Odpiram {name}."
 
@@ -63,9 +100,9 @@ def open_app(name: str) -> str:
 
 
 def find_apps(query: str):
-    query = query.casefold().strip()
+    query = _normalize_name(query)
     return [
         app.get("Name", "")
         for app in _start_apps()
-        if query in app.get("Name", "").casefold()
+        if query in _normalize_name(app.get("Name", ""))
     ][:10]
