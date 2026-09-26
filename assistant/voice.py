@@ -23,19 +23,27 @@ class VoiceEngine:
         self.tts.runAndWait()
 
     def listen(self, seconds: float = 4.0) -> str:
-        rate = 16000
+        input_rate = 44100
+        target_rate = 16000
+
         audio = sd.rec(
-            int(seconds * rate),
-            samplerate=rate,
+            int(seconds * input_rate),
+            samplerate=input_rate,
             channels=1,
             dtype="float32",
         )
         sd.wait()
 
-        pcm = np.clip(audio[:, 0], -1, 1)
+        samples = np.asarray(audio[:, 0], dtype=np.float32)
+        new_length = int(len(samples) * target_rate / input_rate)
+        old_indices = np.arange(len(samples))
+        new_indices = np.linspace(0, len(samples) - 1, new_length)
+        samples = np.interp(new_indices, old_indices, samples)
+
+        pcm = np.clip(samples, -1, 1)
         pcm = (pcm * 32767).astype(np.int16)
 
-        recognizer = KaldiRecognizer(self.model, rate)
+        recognizer = KaldiRecognizer(self.model, target_rate)
         recognizer.AcceptWaveform(pcm.tobytes())
         result = json.loads(recognizer.FinalResult())
         return result.get("text", "").strip()
