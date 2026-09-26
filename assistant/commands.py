@@ -58,22 +58,7 @@ def handle_command(command: str) -> str:
     }:
         return "JARVIS deluje in je pripravljen na ukaze."
 
-    prefixes = (
-        "odpri mi ",
-        "odpri ",
-        "zaženi mi ",
-        "zaženi ",
-        "launch ",
-        "open ",
-        "start ",
-        "run ",
-    )
-    for prefix in prefixes:
-        if text.startswith(prefix):
-            target = text[len(prefix):].strip()
-            if target:
-                return open_app(target)
-
+    # Web commands must be handled before the Windows app launcher.
     if "youtube" in text:
         webbrowser.open("https://www.youtube.com")
         return "Odpiram YouTube."
@@ -93,5 +78,21 @@ def handle_command(command: str) -> str:
     if "kalkulator" in text or "calculator" in text:
         subprocess.Popen(["calc.exe"])
         return "Odpiram Kalkulator."
+
+    prefixes = (
+        "odpri mi ",
+        "odpri ",
+        "zaženi mi ",
+        "zaženi ",
+        "launch ",
+        "open ",
+        "start ",
+        "run ",
+    )
+    for prefix in prefixes:
+        if text.startswith(prefix):
+            target = text[len(prefix):].strip()
+            if target:
+                return open_app(target)
 
     return "Tega ukaza še ne znam. Poskusi 'pomoč'."
