@@ -1,3 +1,4 @@
+import datetime
 import math
 import threading
 import tkinter as tk
@@ -16,6 +17,8 @@ class JarvisUI:
         self.status = tk.StringVar(value="JARVIS ONLINE")
         self.last_command = tk.StringVar(value="Čakam ...")
         self.response = tk.StringVar(value="Pozdravljen. Reci »Jarvis«.")
+        self.clock = tk.StringVar()
+        self.date = tk.StringVar()
 
         tk.Label(
             self.root, text="J A R V I S",
@@ -29,13 +32,26 @@ class JarvisUI:
             fg="#7df9ff", bg="#05070b"
         ).pack()
 
+        tk.Label(
+            self.root, textvariable=self.clock,
+            font=("Segoe UI", 28, "bold"),
+            fg="#ffffff", bg="#05070b"
+        ).pack(pady=(10, 0))
+
+        tk.Label(
+            self.root, textvariable=self.date,
+            font=("Segoe UI", 11),
+            fg="#8fa6b8", bg="#05070b"
+        ).pack()
+
         self.canvas = tk.Canvas(
-            self.root, width=430, height=300,
+            self.root, width=430, height=250,
             bg="#05070b", highlightthickness=0
         )
-        self.canvas.pack(pady=8)
+        self.canvas.pack(pady=5)
         self.angle = 0
         self.animate()
+        self.update_clock()
 
         tk.Label(
             self.root, textvariable=self.last_command,
@@ -60,10 +76,16 @@ class JarvisUI:
     def listen_once(self):
         threading.Thread(target=self.on_listen, daemon=True).start()
 
+    def update_clock(self):
+        now = datetime.datetime.now()
+        self.clock.set(now.strftime("%H:%M:%S"))
+        self.date.set(now.strftime("%A, %d.%m.%Y"))
+        self.root.after(1000, self.update_clock)
+
     def animate(self):
         self.canvas.delete("all")
-        cx, cy = 215, 145
-        for r in (105, 82, 58, 34):
+        cx, cy = 215, 125
+        for r in (95, 74, 53, 32):
             self.canvas.create_oval(
                 cx-r, cy-r, cx+r, cy+r,
                 outline="#123d4a", width=2
