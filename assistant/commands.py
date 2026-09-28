@@ -158,4 +158,4 @@ def handle_command(command: str) -> str:
             if target:
                 return open_app(target)
 
-    return "I don't know that command yet. Try 'help'."
+    return None
