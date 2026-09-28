@@ -1,6 +1,7 @@
 import os
 import threading
 
+from assistant.ai import LocalAI
 from assistant.commands import handle_command
 from ui import JarvisUI
 from server import create_server
@@ -12,12 +13,15 @@ class Jarvis:
         self.voice = None
         self.running = True
         self.voice_lock = threading.Lock()
+        self.ai = LocalAI()
 
     def process(self, command: str):
         if not command:
             return
         self.ui.set_command(f"Ti: {command}")
         response = handle_command(command)
+        if response is None:
+            response = self.ai.ask(command)
         self.ui.set_response(response)
         if self.voice:
             try:
