@@ -46,6 +46,7 @@ class VoiceEngine:
             samplerate=input_rate,
             channels=1,
             dtype="float32",
+            device=sd.default.device[0],
         )
         sd.wait()
 
